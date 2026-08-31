@@ -1,0 +1,70 @@
+# Project-local evaluator and experiment workspace
+moulinette/
+
+# Python bytecode and caches
+__pycache__/
+*.py[cod]
+*$py.class
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.pyre/
+.pytype/
+.hypothesis/
+
+# Test, coverage, and profiling output
+.coverage
+.coverage.*
+coverage.xml
+htmlcov/
+*.cover
+*.py,cover
+.tox/
+.nox/
+.benchmarks/
+.prof
+*.prof
+
+# Virtual environments and dependency-tool state
+.venv/
+venv/
+env/
+ENV/
+.envrc
+
+# Build and packaging artifacts
+build/
+dist/
+*.egg-info/
+.eggs/
+*.egg
+pip-wheel-metadata/
+share/python-wheels/
+
+# Generated runtime output and logs
+*.log
+logs/
+output/
+outputs/
+results/
+artifacts/
+
+# Secrets and local configuration
+.env
+.env.*
+!.env.example
+!.env.template
+*.pem
+*.key
+
+# IDE/editor settings
+.idea/
+.vscode/
+*.swp
+*.swo
+*~
+
+# OS-generated files
+.DS_Store
+Thumbs.db
+Desktop.ini
