@@ -3,8 +3,8 @@ PYTHON  ?= python
 
 TASK_FILE      ?= task.json
 OUTPUT         ?= solution.json
-MODEL_NAME     ?= model/name
-PROVIDER_URL   ?= https://provider.api/v1
+MODEL_NAME     ?= gpt-5.4-mini
+PROVIDER_URL   ?= https://api.openai.com/v1
 
 .PHONY: all install run mbpp swebench clean fclean re help
 
