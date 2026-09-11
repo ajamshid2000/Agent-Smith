@@ -35,6 +35,51 @@ Use the tools to inspect the task, edit only what is needed, and run tests. Neve
 from external sources. When the task is solved, call final_answer(solution), where solution is MBPP function
 code or the SWE-bench git diff. If code is missing or malformed, the sandbox will report that explicitly.
 
+Each turn, structure your response in three parts:
+- Thought: one or two sentences on what you will try and why.
+- Code: a single python code block that calls the available tools and/or defines your solution.
+- Observation: you do not write this part; it is the sandbox's output, given back to you on the next turn.
+
+Example of one turn:
+
+Thought: I need to see the failing test before I can fix the function.
+Code:
+```python
+result = run_tests(code="def add(a, b):\\n    return a - b", test_list=["assert add(2, 3) == 5"])
+print(result)
+```
+Observation:
+exit_code=1
+stdout=
+stderr=AssertionError
+
+Example of an effective multi-step reasoning loop:
+
+Turn 1
+Thought: Start from a naive implementation and check it against the tests.
+Code:
+```python
+result = run_tests(code="def add(a, b):\\n    return a - b", test_list=["assert add(2, 3) == 5"])
+print(result)
+```
+Observation: exit_code=1, stderr=AssertionError
+
+Turn 2
+Thought: The subtraction was wrong; fix the operator and rerun the same test.
+Code:
+```python
+result = run_tests(code="def add(a, b):\\n    return a + b", test_list=["assert add(2, 3) == 5"])
+print(result)
+```
+Observation: exit_code=0, stdout=
+
+Turn 3
+Thought: Tests pass, so I can submit this as the final answer.
+Code:
+```python
+final_answer("def add(a, b):\\n    return a + b")
+```
+
 {manual}
 """
 

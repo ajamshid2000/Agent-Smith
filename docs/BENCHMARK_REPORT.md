@@ -100,87 +100,9 @@ Before selecting a final model, run the same set of MBPP tasks for every model,
 record correctness using Moulinette validation, and repeat the Groq Qwen run
 with an output limit compatible with the account's 1000-token OTPM quota.
 
-## Historical Raw Trace
 
-The original command output and serialized trace are retained below for auditability.
+## Still to measure
 
-## Setup
-{
-  "task_id": 96,
-  "task_definition": "Write a python function to find the number of divisors of a given integer.",
-  "function_definition": "def divisor(n):",
-  "test_imports": [],
-  "test_list": [
-    "assert divisor(12) == 6",
-    "assert divisor(9) == 3"
-  ]
-}
-
-
-| Model/provider | Tasks | Selection reason |
-|---|---|---|
-| To be measured | Three SWE-bench tasks | Representative bug-fixing tasks |
-
-## Results
-
-uv run python -m agent_mbpp \
-	--task-file task.json \
-	--output solution.json \
-	--model-name "qwen/qwen3.8-27b" \
-	--provider-url "https://api.groq.com/openai/v1"
-agent failed: LLM request failed after token rotation: HTTP 429: {"error":{"message":"Request too large for model `qwen/qwen3.8-27b` in organization `org_01m27ydszke1ptnq3qbcq8rd7f` service tier `on_demand` on output tokens per minute (OTPM): Limit 1000, Requested 1500. The request's expected output tokens exceed the enforced limit; reduce max_tokens (or the request's expected output) and try again. Need more tokens? Upgrade to Dev Tier today at https://console.groq.com/settings/billing","type":"tokens","code":"rate_limit_exceeded"}}
-
-
-{
-  "task_id": "96",
-  "benchmark": "mbpp",
-  "success": true,
-  "solution": "def divisor(n):\n    \"\"\"Return the number of positive divisors of integer n.\"\"\"\n    if n <= 0:\n        return 0\n    count = 0\n    i = 1\n    while i * i <= n:\n        if n % i == 0:\n            count += 1\n            if i != n // i:\n                count += 1\n        i += 1\n    return count\n",
-  "iterations": 1,
-  "total_requests": 2,
-  "total_input_tokens": 397,
-  "total_output_tokens": 600,
-  "total_time_seconds": 2.4412279441021383,
-  "steps": [
-    {
-      "step": 1,
-      "input_tokens": 397,
-      "output_tokens": 600,
-      "request_time_ms": 2397.3483671434224,
-      "timestamp": "2026-09-11T12:51:55.306576",
-      "api_url": "https://api.groq.com/openai/v1",
-      "model_name": "openai/gpt-oss-120b",
-      "llm_output": "```python\ndef divisor(n):\n    \"\"\"Return the number of positive divisors of integer n.\"\"\"\n    if n <= 0:\n        return 0\n    count = 0\n    i = 1\n    while i * i <= n:\n        if n % i == 0:\n            count += 1\n            if i != n // i:\n                count += 1\n        i += 1\n    return count\n\n# Run the provided tests\nrun_tests(\n    code=(\n        \"def divisor(n):\\n\"\n        \"    \\\"\\\"\\\"Return the number of positive divisors of integer n.\\\"\\\"\\\"\\n\"\n        \"    if n <= 0:\\n\"\n        \"        return 0\\n\"\n        \"    count = 0\\n\"\n        \"    i = 1\\n\"\n        \"    while i * i <= n:\\n\"\n        \"        if n % i == 0:\\n\"\n        \"            count += 1\\n\"\n        \"            if i != n // i:\\n\"\n        \"                count += 1\\n\"\n        \"        i += 1\\n\"\n        \"    return count\\n\"\n    ),\n    test_imports=[],\n    test_list=[\n        \"assert divisor(12) == 6\",\n        \"assert divisor(9) == 3\"\n    ]\n)\n\n# If tests pass, return the solution\nfinal_answer(\n    \"def divisor(n):\\n\"\n    \"    \\\"\\\"\\\"Return the number of positive divisors of integer n.\\\"\\\"\\\"\\n\"\n    \"    if n <= 0:\\n\"\n    \"        return 0\\n\"\n    \"    count = 0\\n\"\n    \"    i = 1\\n\"\n    \"    while i * i <= n:\\n\"\n    \"        if n % i == 0:\\n\"\n    \"            count += 1\\n\"\n    \"            if i != n // i:\\n\"\n    \"                count += 1\\n\"\n    \"        i += 1\\n\"\n    \"    return count\\n\"\n)\n```",
-      "sandbox_input": "def divisor(n):\n    \"\"\"Return the number of positive divisors of integer n.\"\"\"\n    if n <= 0:\n        return 0\n    count = 0\n    i = 1\n    while i * i <= n:\n        if n % i == 0:\n            count += 1\n            if i != n // i:\n                count += 1\n        i += 1\n    return count\n\n# Run the provided tests\nrun_tests(\n    code=(\n        \"def divisor(n):\\n\"\n        \"    \\\"\\\"\\\"Return the number of positive divisors of integer n.\\\"\\\"\\\"\\n\"\n        \"    if n <= 0:\\n\"\n        \"        return 0\\n\"\n        \"    count = 0\\n\"\n        \"    i = 1\\n\"\n        \"    while i * i <= n:\\n\"\n        \"        if n % i == 0:\\n\"\n        \"            count += 1\\n\"\n        \"            if i != n // i:\\n\"\n        \"                count += 1\\n\"\n        \"        i += 1\\n\"\n        \"    return count\\n\"\n    ),\n    test_imports=[],\n    test_list=[\n        \"assert divisor(12) == 6\",\n        \"assert divisor(9) == 3\"\n    ]\n)\n\n# If tests pass, return the solution\nfinal_answer(\n    \"def divisor(n):\\n\"\n    \"    \\\"\\\"\\\"Return the number of positive divisors of integer n.\\\"\\\"\\\"\\n\"\n    \"    if n <= 0:\\n\"\n    \"        return 0\\n\"\n    \"    count = 0\\n\"\n    \"    i = 1\\n\"\n    \"    while i * i <= n:\\n\"\n    \"        if n % i == 0:\\n\"\n    \"            count += 1\\n\"\n    \"            if i != n // i:\\n\"\n    \"                count += 1\\n\"\n    \"        i += 1\\n\"\n    \"    return count\\n\"\n)",
-      "sandbox_output": "",
-      "retries": 1
-    }
-  ],
-  "system_prompt": "You are Agent Smith. Solve the coding task through a Thought -> Code -> Observation loop.\nAvailable tools are Python functions described below. Write one executable Python code block per turn.\nUse the tools to inspect the task, edit only what is needed, and run tests. Never fetch patches or solutions\nfrom external sources. When the task is solved, call final_answer(solution), where solution is MBPP function\ncode or the SWE-bench git diff. If code is missing or malformed, the sandbox will report that explicitly.\n\nAvailable MCP tools are callable Python functions:\n- run_tests: Execute the MBPP candidate against its tests.; parameters: {\"type\": \"object\", \"properties\": {\"code\": {\"type\": \"string\"}, \"test_imports\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}, \"test_list\": {\"type\": \"array\", \"items\": {\"type\": \"string\"}}}, \"required\": [\"code\", \"test_list\"]}\n",
-  "error": null,
-  "timestamp": "2026-09-11T12:51:55.306606"
-}
-
-
-
-
-
-| Model | Task | Pass/Fail | Iterations | Input tokens | Output tokens | Wall-clock time |
-|---|---|---:|---:|---:|---:|---:|
-| To be measured | To be measured | - | - | - | - | - |
-
-## Provider Reliability
-
-To be populated from `solution.json` step metrics: average request time, retries, and availability.
-
-## Intermediary Metrics
-
-The step of first reading or editing the final-patch file and the step of first reducing test failures are recorded from each solution trace.
-
-## Ablation Study
-
-A before/after comparison of the system prompt, tools, or parameters is recorded after the same tasks are run with the same model.
-
-## Conclusions
-
-The final model selection is based on pass rate, token usage, iteration efficiency, and provider reliability.
+- **SWE-bench traces**: no completed run is available yet; the agent's patch-edit and test-failure-recovery behavior is unmeasured.
+- **Ablation study**: a controlled before/after comparison (same task, model, and provider; one factor changed — system prompt, tools, or token limits) has not been run.
+- **Groq `qwen/qwen3.8-27b` retry**: rerun with an output-token limit at or below the account's 1000-token OTPM quota to get an actual pass/fail instead of a provider-side rejection.
