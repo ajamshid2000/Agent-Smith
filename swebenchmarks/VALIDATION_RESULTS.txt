@@ -1,0 +1,43 @@
+SWE-bench Validation Results
+============================
+Date: 2026-09-11
+
+Validation environment
+----------------------
+Moulinette was run with the rootless Podman API socket enabled. Moulinette's
+file-transfer path was updated to avoid unmapped host-UID errors when copying
+patches into rootless containers.
+
+Task 1: sympy__sympy-18189
+---------------------------
+Model                         Correctness   Metrics       Overall
+DeepSeek                      PASSED        FAILED        FAILED
+GLM                           FAILED        FAILED        FAILED
+GPT-4o                        PASSED        PASSED        PASSED
+HY4                           PASSED        FAILED        FAILED
+MiMo                          FAILED        PASSED        FAILED
+
+Task 1 details:
+- DeepSeek: input tokens exceeded the 300000 limit (307717).
+- GLM: correctness failed; input tokens exceeded the limit (302369).
+- GPT-4o: correctness and metrics passed.
+- HY4: correctness passed; input tokens exceeded the limit (300440).
+- MiMo: solution was not a valid git patch.
+
+Task 2: sympy__sympy-13480
+---------------------------
+Per-model solution files exist. Earlier validation attempts were blocked by
+the unavailable Docker/Podman API socket and should be rerun with the fixed
+Moulinette transfer path.
+
+Task 3: django__django-11066
+-----------------------------
+Per-model solution files exist. Earlier validation attempts were blocked by
+the unavailable Docker/Podman API socket or invalid non-patch solutions and
+should be rerun with the fixed Moulinette transfer path.
+
+Summary
+-------
+Confirmed fully passing result: task1 GPT-4o.
+Task1 DeepSeek and HY4 patches pass correctness but fail Moulinette metrics.
+Task1 GLM and MiMo are not passing solutions.

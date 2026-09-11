@@ -1,10 +1,12 @@
 # ABOUTME: SWE-bench instance management, Docker container lifecycle, and patch evaluation.
 # ABOUTME: Provides InteractSweBench class as Fire CLI for listing/inspecting/evaluating SWE-bench tasks.
 import json
+import io
 import platform
 import random
 import subprocess
 import sys
+import tarfile
 from enum import Enum
 from pathlib import Path
 from typing import List, Optional, Union
@@ -47,7 +49,7 @@ EXAM_POOL = SEED_POOL + [
 ]
 
 from swebench.harness.test_spec.test_spec import make_test_spec
-from swebench.harness.docker_utils import copy_to_container, exec_run_with_timeout
+from swebench.harness.docker_utils import exec_run_with_timeout
 from swebench.harness.constants import (
     DOCKER_PATCH,
     DOCKER_WORKDIR,
@@ -70,6 +72,27 @@ import docker
 
 DEFAULT_DATASET = "SWE-bench/SWE-bench_Verified"
 DEFAULT_SPLIT = "test"
+
+
+def _copy_file_to_container(container, source: Path, destination: Path) -> None:
+    """Copy a file without preserving host ownership metadata.
+
+    Rootless Podman rejects archive entries that contain an unmapped host UID,
+    while Docker accepts them. Creating the archive explicitly as root keeps
+    the Docker SDK path portable across both runtimes.
+    """
+    data = source.read_bytes()
+    entry = tarfile.TarInfo(source.name)
+    entry.size = len(data)
+    entry.mode = 0o644
+    entry.uid = 0
+    entry.gid = 0
+    entry.uname = "root"
+    entry.gname = "root"
+    archive = io.BytesIO()
+    with tarfile.open(fileobj=archive, mode="w") as tar:
+        tar.addfile(entry, io.BytesIO(data))
+    container.put_archive(str(destination.parent), archive.getvalue())
 
 
 class InteractSweBench:
@@ -426,7 +449,7 @@ class InteractSweBench:
         if patch:
             patch_file = Path("/tmp/patch.diff")
             patch_file.write_text(patch)
-            copy_to_container(container, patch_file, Path(DOCKER_PATCH))
+            _copy_file_to_container(container, patch_file, Path(DOCKER_PATCH))
             # Try to apply patch
             GIT_APPLY_CMDS = [
                 "git apply --verbose",
@@ -452,7 +475,7 @@ class InteractSweBench:
         try:
             tmp = Path("/tmp/eval.sh")
             tmp.write_text(eval_script)
-            copy_to_container(container, tmp, Path("/eval.sh"))
+            _copy_file_to_container(container, tmp, Path("/eval.sh"))
             container.exec_run("chmod +x /eval.sh")
             out, timed_out, runtime = exec_run_with_timeout(container, "/bin/bash /eval.sh", timeout)
             print(out)
