@@ -73,7 +73,11 @@ def extract_code(response: str) -> tuple[str, str]:
     # Pattern: ```python code ``` or ``` code ```
     blocks = re.findall(r"```(?:python|py)?\s*\n?(.*?)```", response, re.I | re.S)
     if blocks:
-        return blocks[0].strip(), "python code block"
+        actionable = [
+            block for block in blocks
+            if any(marker in block for marker in ("edit_file(", "run_tests(", "final_answer("))
+        ]
+        return (actionable[-1] if actionable else blocks[0]).strip(), "python code block"
     
     # FORMAT 2: XML tool calls (Claude/some providers)
     # Pattern: <invoke name="tool_name">...</invoke>
@@ -100,8 +104,28 @@ def extract_code(response: str) -> tuple[str, str]:
     if hermes:
         payload = json.loads(hermes.group(1))
         return _tool_call(payload.get("name", ""), payload.get("arguments", {})), "JSON tool call converted to Python"
+
+    # FORMAT 4: DeepSeek DSML tool calls
+    # Example: <｜｜DSML｜｜ invoke name="read_file">...</｜｜DSML｜｜ invoke>
+    dsml = re.findall(
+        r"invoke\s+name=[\"']([^\"']+)[\"']>(.*?)</[^>]*invoke>",
+        response,
+        re.I | re.S,
+    )
+    if dsml:
+        calls = []
+        for name, body in dsml:
+            arguments = {}
+            for key, is_string, value in re.findall(
+                r"parameter\s+name=[\"']([^\"']+)[\"'][^>]*string=[\"'](true|false)[\"'][^>]*>(.*?)</[^>]*parameter>",
+                body,
+                re.I | re.S,
+            ):
+                arguments[key] = value if is_string.lower() == "true" else int(value)
+            calls.append(f"print({_tool_call(name, arguments).removeprefix('result = ')})")
+        return "\n".join(calls), "DSML tool call converted to Python"
     
-    # FORMAT 4: ReAct format (common in some OSS models)
+    # FORMAT 5: ReAct format (common in some OSS models)
     # Pattern: Action: func_name\nAction Input: {...}
     react = re.search(r"Action:\s*([\w.-]+)\s*\nAction Input:\s*(\{.*?\})", response, re.I | re.S)
     if react:

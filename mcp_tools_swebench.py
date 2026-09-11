@@ -35,9 +35,7 @@ def _path(path: str) -> Path:
 def _docker_exec(command: str, timeout: int = 120) -> str:
     """Execute a shell command inside the active SWE-bench container."""
     result = subprocess.run(["docker", "exec", CONTAINER_ID, "bash", "-lc", command], capture_output=True, text=True, timeout=timeout)
-    if result.returncode:
-        raise RuntimeError(result.stderr.strip() or result.stdout.strip())
-    return result.stdout
+    return f"exit_code={result.returncode}\nstdout={result.stdout}\nstderr={result.stderr}"
 
 
 def read_file(filepath: str, start_line: int, end_line: int) -> str:
@@ -144,6 +142,16 @@ def serve() -> None:
             elif request.get("method") == "tools/list":
                 result = {"tools": TOOLS}
             elif request.get("method") == "tools/call":
+                #                 {
+                #   "method": "tools/call",
+                #   "params": {
+                #     "name": "run_tests",
+                #     "arguments": {
+                #       "code": "...",
+                #       "test_list": ["..."]
+                #     }
+                #   }
+                # }
                 params = request.get("params", {})
                 result = {"content": [{"type": "text", "text": str(functions[params["name"]](**params.get("arguments", {})))}]}
             else:

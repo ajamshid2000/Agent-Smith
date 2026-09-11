@@ -29,7 +29,9 @@ PERFORMANCE:
 
 import argparse
 import builtins
+import contextlib
 import json
+import io
 import multiprocessing
 import os
 import resource
@@ -138,9 +140,9 @@ def _worker(code: str, config_data: dict[str, Any], tool_names: list[str], conne
         """Open a file only after applying sandbox path restrictions."""
         return original_open(safe_path(file), mode, *args, **kwargs)
 
-    def call_tool(name: str, *args: Any, **kwargs: Any) -> Any:
+    def call_tool(tool_name: str, *args: Any, **kwargs: Any) -> Any:
         """Proxy a sandbox tool call to the parent MCP bridge."""
-        connection.send({"type": "tool", "name": name, "args": args, "kwargs": kwargs})
+        connection.send({"type": "tool", "name": tool_name, "args": args, "kwargs": kwargs})
         response = connection.recv()
         if response.get("error"):
             raise RuntimeError(response["error"])
@@ -167,8 +169,10 @@ def _worker(code: str, config_data: dict[str, Any], tool_names: list[str], conne
     namespace = {"__builtins__": safe_builtins, "final_answer": final_answer}
     namespace.update({name: make_tool(name) for name in tool_names})
     try:
-        exec(compile(code, "<sandbox>", "exec"), namespace, namespace)
-        connection.send({"type": "done", "output": ""})
+        output = io.StringIO()
+        with contextlib.redirect_stdout(output):
+            exec(compile(code, "<sandbox>", "exec"), namespace, namespace)
+        connection.send({"type": "done", "output": output.getvalue()})
     except (KeyboardInterrupt, SystemExit):
         raise
     except BaseException:

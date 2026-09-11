@@ -20,17 +20,18 @@ def _content_text(content: object) -> str:
 def main() -> None:
     """Load an MBPP task, run the bounded agent, and write solution JSON."""
     parser = argparse.ArgumentParser()
-    parser.add_argument("--task-file", default="task.json")
-    parser.add_argument("--output", default="solution.json")
+    parser.add_argument("--task-file", default="cache/mbpp_task.json")
+    parser.add_argument("--output", default="cache/mbpp_solution.json")
     parser.add_argument("--model-name", default="gpt-5.4-mini")
     parser.add_argument("--provider-url", default="https://api.openai.com/v1")
     parser.add_argument("--max-iterations", type=int, default=10)
+    parser.add_argument("--max-output-tokens", type=int, default=6000)
     parser.add_argument("--env-file", default=".env")
     args = parser.parse_args()
     load_env_file(args.env_file)
     task_path = Path(args.task_file)
     if not task_path.is_file():
-        parser.error(f"task file not found: {task_path}. Dump one first with: cd moulinette && uv run moulinette_eval dump mbpp --output ../{task_path}")
+        parser.error(f"task file not found: {task_path}. Dump one first with: cd moulinette && uv run moulinette_eval dump mbpp --output ../cache/{task_path}")
     try:
         task = MBPPTaskInput.model_validate_json(task_path.read_text(encoding="utf-8"))
     except (OSError, ValueError) as error:
@@ -42,7 +43,7 @@ def main() -> None:
         provider = OpenAIProvider(args.model_name, args.provider_url)
         sandbox = Sandbox(SandboxConfig(max_execution_time_seconds=30), tools)
         prompt = f"Task: {task.task_definition}\nFunction signature: {task.function_definition}\nTests: {task.test_list}\nWrite the implementation. In the same Python code block, call run_tests(code=<your complete function code>, test_imports={task.test_imports!r}, test_list={task.test_list!r}). If the tests pass, immediately call final_answer(<your complete function code as a string>). Never return only a function definition; the final line must call final_answer."
-        solution = AgentLoop(provider, sandbox, "mbpp", args.max_iterations, 6000, 1500).run(str(task.task_id), prompt, tool_manual(schemas))
+        solution = AgentLoop(provider, sandbox, "mbpp", args.max_iterations, 6000, args.max_output_tokens).run(str(task.task_id), prompt, tool_manual(schemas))
         if not solution.success and solution.steps:
             candidate = solution.steps[-1].sandbox_input.strip()
             if candidate.startswith("def "):

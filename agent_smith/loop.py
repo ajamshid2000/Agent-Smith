@@ -29,7 +29,8 @@ from .sandbox import Sandbox
 
 
 SYSTEM_PROMPT = """You are Agent Smith. Solve the coding task through a Thought -> Code -> Observation loop.
-Available tools are Python functions described below. Write one executable Python code block per turn.
+Available tools are Python functions described below. Do not use native API tool calls or emit tool-call JSON.
+Write one executable Python code block per turn and call the described tools as Python functions inside it.
 Use the tools to inspect the task, edit only what is needed, and run tests. Never fetch patches or solutions
 from external sources. When the task is solved, call final_answer(solution), where solution is MBPP function
 code or the SWE-bench git diff. If code is missing or malformed, the sandbox will report that explicitly.

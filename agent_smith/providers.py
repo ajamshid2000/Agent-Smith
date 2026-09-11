@@ -180,7 +180,8 @@ class OpenAIProvider:
                 payload,
                 {
                     "Authorization": f"Bearer {key}",
-                    "Content-Type": "application/json"
+                    "Content-Type": "application/json",
+                    "User-Agent": "Agent-Smith/0.1"
                 }
             )
             
@@ -189,8 +190,21 @@ class OpenAIProvider:
                 with urllib.request.urlopen(request, timeout=120) as response:
                     data = json.load(response)
                 
-                # PARSE RESPONSE
-                choice = data["choices"][0]["message"]["content"]
+                # PARSE RESPONSE. Some OpenRouter reasoning models return a
+                # null or structured content field, so normalize it before
+                # the response extractor applies regular expressions.
+                message = data["choices"][0]["message"]
+                choice = message.get("content")
+                if isinstance(choice, list):
+                    choice = "\n".join(
+                        item.get("text", "")
+                        for item in choice
+                        if isinstance(item, dict)
+                    )
+                if not isinstance(choice, str) or not choice.strip():
+                    choice = message.get("reasoning", "")
+                if not isinstance(choice, str):
+                    choice = ""
                 usage = data.get("usage", {})
                 
                 # RETURN SUCCESS

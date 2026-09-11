@@ -1,5 +1,3 @@
-# Project-local evaluator and experiment workspace
-moulinette/
 
 # Python bytecode and caches
 __pycache__/

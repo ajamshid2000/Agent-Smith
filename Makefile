@@ -1,10 +1,12 @@
 UV      ?= uv
 PYTHON  ?= python
 
-TASK_FILE      ?= task.json
-OUTPUT         ?= solution.json
-MODEL_NAME     ?= gpt-5.4-mini
-PROVIDER_URL   ?= https://api.openai.com/v1
+TASK_FILE_SWEBENCH      ?= cache/swebench_task.json
+TASK_FILE      ?= cache/mbpp_task.json
+OUTPUT         ?= cache/mbpp_solution.json
+OUTPUT_SWEBENCH ?= cache/swebench_solution.json
+MODEL_NAME     ?= ~openai/gpt-astra-latest
+PROVIDER_URL   ?= https://openrouter.ai/api/v1
 
 .PHONY: all install run mbpp swebench clean fclean re help
 
@@ -17,6 +19,7 @@ run: install
 	$(UV) run sandbox
 
 mbpp: install
+	mkdir -p cache
 	$(UV) run $(PYTHON) -m agent_mbpp \
 		--task-file $(TASK_FILE) \
 		--output $(OUTPUT) \
@@ -24,9 +27,10 @@ mbpp: install
 		--provider-url "$(PROVIDER_URL)"
 
 swebench: install
+	mkdir -p cache
 	$(UV) run $(PYTHON) -m agent_swebench \
-		--task-file $(TASK_FILE) \
-		--output $(OUTPUT) \
+		--task-file $(TASK_FILE_SWEBENCH) \
+		--output $(OUTPUT_SWEBENCH) \
 		--model-name "$(MODEL_NAME)" \
 		--provider-url "$(PROVIDER_URL)"
 
