@@ -157,7 +157,12 @@ def _worker(code: str, config_data: dict[str, Any], tool_names: list[str], conne
 
     def make_tool(name: str) -> Callable[..., Any]:
         """Create a callable proxy for one dynamically discovered MCP tool."""
-        return lambda *args, **kwargs: call_tool(name, *args, **kwargs)
+        def tool_proxy(*args: Any, **kwargs: Any) -> Any:
+            result = call_tool(name, *args, **kwargs)
+            print(result)
+            return result
+
+        return tool_proxy
 
     safe_builtins = {name: getattr(builtins, name) for name in (
         "abs", "all", "any", "bool", "dict", "enumerate", "filter", "float", "format", "hasattr",

@@ -5,7 +5,7 @@ TASK_FILE_SWEBENCH      ?= cache/swebench_task.json
 TASK_FILE      ?= cache/mbpp_task.json
 OUTPUT         ?= cache/mbpp_solution.json
 OUTPUT_SWEBENCH ?= cache/swebench_solution.json
-MODEL_NAME     ?= ~openai/gpt-astra-latest
+MODEL_NAME     ?= xiaomi/mimo-v2.5
 PROVIDER_URL   ?= https://openrouter.ai/api/v1
 
 .PHONY: all install run mbpp swebench clean fclean re help

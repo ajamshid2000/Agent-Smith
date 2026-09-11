@@ -1,3 +1,11 @@
+"""Command-line entry point for running Agent Smith on MBPP tasks.
+
+The module loads a serialized MBPP task, exposes the benchmark's test tool to
+the sandbox, and runs the shared :class:`agent_smith.loop.AgentLoop`. The
+result is persisted as JSON so that benchmark runs can be inspected or
+evaluated later.
+"""
+
 import argparse
 import json
 from pathlib import Path
@@ -11,14 +19,45 @@ from agent_smith.sandbox import Sandbox, SandboxConfig
 
 
 def _content_text(content: object) -> str:
-    """Convert an MCP content response into plain text."""
+    """Flatten an MCP response into the text consumed by the fallback check.
+
+    MCP clients normally return a list of content objects, each of which may
+    contain a ``text`` field. This helper joins those fields while accepting a
+    scalar response as well, keeping the fallback path tolerant of both the
+    JSON-RPC response shape and direct test-tool return values.
+
+    Args:
+        content: An MCP content list, a single response value, or any object
+            returned by the MBPP test tool.
+
+    Returns:
+        The response represented as a single string. Non-dictionary list
+        entries are ignored because they do not provide textual MCP content.
+    """
     if isinstance(content, list):
         return "\n".join(str(item.get("text", "")) for item in content if isinstance(item, dict))
     return str(content)
 
 
 def main() -> None:
-    """Load an MBPP task, run the bounded agent, and write solution JSON."""
+    """Run one MBPP task from the command line.
+
+    The command reads and validates the task file, starts the local MCP server
+    that executes MBPP tests, and configures a bounded agent loop with the
+    selected model provider. A successful agent normally calls
+    ``final_answer`` itself. If it stops after producing only a function
+    definition, this function performs one final test and promotes that
+    candidate when it passes.
+
+    Command-line options control the task and output paths, model endpoint,
+    iteration limit, output-token budget, and environment file. The serialized
+    :class:`agent_smith.models.SolutionOutput` is written to ``--output`` even
+    when the agent fails; failures then terminate the process with status 1.
+
+    Raises:
+        SystemExit: Via ``argparse`` when the task file is missing or invalid,
+            or when the agent does not produce a successful solution.
+    """
     parser = argparse.ArgumentParser()
     parser.add_argument("--task-file", default="cache/mbpp_task.json")
     parser.add_argument("--output", default="cache/mbpp_solution.json")
