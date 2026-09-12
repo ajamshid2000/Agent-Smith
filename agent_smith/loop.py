@@ -102,7 +102,7 @@ class AgentLoop:
         max_output_tokens: Stop if output tokens exceed this (cost/safety)
     """
     
-    def __init__(self, provider: OpenAIProvider, sandbox: Sandbox, benchmark: str, max_iterations: int, max_input_tokens: int, max_output_tokens: int):
+    def __init__(self, provider: OpenAIProvider, sandbox: Sandbox, benchmark: str, max_iterations: int, max_input_tokens: int, max_output_tokens: int, request_interval_seconds: float = 0.0):
         """Configure an agent loop with benchmark-specific iteration and token limits."""
         self.provider = provider
         self.sandbox = sandbox
@@ -110,6 +110,7 @@ class AgentLoop:
         self.max_iterations = max_iterations
         self.max_input_tokens = max_input_tokens
         self.max_output_tokens = max_output_tokens
+        self.request_interval_seconds = request_interval_seconds
 
     def run(self, task_id: str, task_prompt: str, manual: str) -> SolutionOutput:
         """
@@ -145,7 +146,11 @@ class AgentLoop:
             if remaining_input <= 0 or remaining_output <= 0:
                 error = "Configured token limit reached"
                 break  # Stop if we're out of tokens
-            
+
+            if iteration > 1:
+                # Space out requests to stay under provider rate limits (req/min caps).
+                time.sleep(self.request_interval_seconds)
+
             try:
                 # STEP 1: THOUGHT - Get LLM to think about the problem
                 # Send: current observation (task + previous results)
