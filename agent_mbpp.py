@@ -61,7 +61,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--task-file", default="cache/mbpp_task.json")
     parser.add_argument("--output", default="cache/mbpp_solution.json")
-    parser.add_argument("--model-name", default="gpt-5.4-mini")
+    parser.add_argument("--model-name", default="~openai/gpt-sol-latest")
     parser.add_argument("--provider-url", default="https://openrouter.ai/api/v1")
     parser.add_argument("--max-iterations", type=int, default=10)
     parser.add_argument("--max-output-tokens", type=int, default=6000)

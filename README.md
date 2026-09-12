@@ -25,6 +25,9 @@ Set provider credentials through environment variables. Multiple comma-separated
 For moulinette evaluation:
 
 ```sh
+systemctl --user start podman.socket
+systemctl --user status podman.socket
+docker version
 cd moulinette
 uv run moulinette_eval dump mbpp --output ../cache/mbpp_task.json
 cd ..

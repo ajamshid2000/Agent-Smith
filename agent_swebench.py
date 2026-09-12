@@ -49,9 +49,9 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--task-file", default="cache/swebench_task.json")
     parser.add_argument("--output", default="cache/swebench_solution.json")
-    parser.add_argument("--model-name", default="gpt-5.4-mini")
+    parser.add_argument("--model-name", default="~openai/gpt-sol-latest")
     parser.add_argument("--provider-url", default="https://openrouter.ai/api/v1")
-    parser.add_argument("--max-iterations", type=int, default=60)
+    parser.add_argument("--max-iterations", type=int, default=30)
     parser.add_argument("--request-interval-seconds", type=float, default=1.0)
     parser.add_argument("--mcp-stdio", default=f"{sys.executable} mcp_tools_swebench.py")
     parser.add_argument("--env-file", default=".env")
@@ -109,7 +109,7 @@ def main() -> None:
         provider = OpenAIProvider(args.model_name, args.provider_url)
         sandbox = Sandbox(SandboxConfig(max_execution_time_seconds=30, allowed_directories=["/testbed", "/tmp/agent"]), tools)
         prompt = f"Instance: {task.instance_id}\nRepository: {task.repo}\nProblem statement:\n{task.problem_statement}\nHints:\n{task.hints_text}\nEvaluation script:\n{task.eval_script}\nExplore the repository, edit the bug, run focused tests, then call final_answer(get_patch())."
-        solution = AgentLoop(provider, sandbox, "swebench", args.max_iterations, 600000, 20000, args.request_interval_seconds).run(task.instance_id, prompt, tool_manual(schemas))
+        solution = AgentLoop(provider, sandbox, "swebench", args.max_iterations, 300000, 10000, args.request_interval_seconds).run(task.instance_id, prompt, tool_manual(schemas))
     finally:
         if "client" in locals():
             client.close()
